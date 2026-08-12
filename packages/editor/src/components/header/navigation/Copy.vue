@@ -36,7 +36,7 @@ function handleClone() {
   //避免复制相机或场景
   if (object === null || object.parent === null) return;
 
-  object = object.clone();
+  object = App.cloneObject(object);
 
   App.execute(new AddObjectCommand(object));
 }

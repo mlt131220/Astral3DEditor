@@ -362,7 +362,7 @@ function handleContextmenuSelect(key: string) {
       if (parent !== null) App.execute(new RemoveObjectCommand(object));
       break;
     case "clone":
-      const _object = object.clone();
+      const _object = App.cloneObject(object);
 
       App.execute(new AddObjectCommand(_object));
       break;

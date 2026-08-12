@@ -9,7 +9,7 @@ import {
     TimelineKeyframeChangedEvent, TimelineClickEvent
 } from "@/core/libs/astral-timeline/animation-timeline";
 import {useAddSignal, useDispatchSignal} from "@/hooks";
-import { getParentPath,debounce, deepAssign, getNestedProperty } from "@/utils";
+import { debounce, deepAssign, getNestedProperty } from "@/utils";
 import { KeyframeTrackFactory } from "@/core/animation/AnimationManager";
 import App from "@/core/app/App";
 
@@ -418,11 +418,8 @@ class TimelineTrack extends THREE.EventDispatcher<CustomEvents> {
         let track = App.animationManager.hasExistingTrack(currentClip, attr) as THREE.KeyframeTrack;
         // 如果不存在当前属性轨道，则新增轨道
         if (!track) {
-            // 先获取锁定对象到选中对象路径
-            let path = App.selected?.name;
-            if (App.locked && App.selected && App.locked !== App.selected) {
-                path = getParentPath(App.locked, App.selected);
-            }
+            // UUID 是动画绑定身份，名称只用于编辑器展示。
+            const path = App.selected.uuid;
 
             let _times = [currentTime], _values: any[] = [];
             const keyData = insertValue(_values, 0);

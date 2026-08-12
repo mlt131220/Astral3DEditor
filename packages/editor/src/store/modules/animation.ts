@@ -1,7 +1,8 @@
 import {reactive, toRefs, h,computed} from "vue";
 import {NIcon} from 'naive-ui';
 import type {TreeOption} from 'naive-ui'
-import {defineStore} from 'pinia';
+import { defineStore } from "pinia";
+import type { Object3D } from "three";
 import {ConditionPoint} from '@vicons/carbon';
 import {store} from '@/store';
 import {t} from "@/language";
@@ -156,16 +157,20 @@ export const useAnimationStore = defineStore('model-animation', () => {
                     return;
                 }
 
+                // UUID 只负责稳定绑定，树节点始终展示对象的当前名称。
+                const trackObject = index === 0 ? actionObject.getObjectByProperty('uuid', part) : undefined;
+                const displayName = trackObject ? trackObject.name : part;
+
                 // 记录到rows
                 const _row: ITimelineRow = {
                     id: nodePath,
-                    name: part
+                    name: displayName
                 }
 
                 // 创建新节点
                 const newNode: TreeOption = {
                     key: nodePath,
-                    label: part,
+                    label: displayName,
                     children: [],
                     ...(isLeaf && {
                         isLeaf: true,
@@ -228,6 +233,44 @@ export const useAnimationStore = defineStore('model-animation', () => {
             waitRows = [];
 
             state.duration = timelineInstance._maxDuration;
+        }
+    }
+    /**
+     * 按 UUID 同步动画轨道树中的对象显示名称，不重建时间轴
+     * @param object 已发生变更的场景对象
+     * @returns 无返回值
+     */
+    const updateObjectName = (object: Object3D) => {
+        const rootNode = state.trackTree[0];
+        if (!rootNode) return;
+
+        let targetNode: TreeOption | undefined;
+        /**
+         * 在当前轨道树中递归查找对象节点
+         * @param node 当前树节点
+         * @returns 无返回值
+         */
+        const findNodeByUuid = (node: TreeOption) => {
+            if (node.key === object.uuid) {
+                targetNode = node;
+                return;
+            }
+
+            node.children?.some(child => {
+                findNodeByUuid(child);
+                return !!targetNode;
+            });
+        };
+        findNodeByUuid(rootNode);
+        if (!targetNode) return;
+
+        if (targetNode.label !== object.name) targetNode.label = object.name;
+
+        const rows = timelineInstance ? timelineInstance.model.rows : waitRows;
+        const row = rows.find(item => item.id === object.uuid);
+        if (row && row.name !== object.name) {
+            row.name = object.name;
+            timelineInstance?.timeline.redraw();
         }
     }
     const play = () => {
@@ -319,6 +362,7 @@ export const useAnimationStore = defineStore('model-animation', () => {
         setTimelineInstance,
         setList,
         setCurrent,
+        updateObjectName,
         play,
         pause,
         stop,

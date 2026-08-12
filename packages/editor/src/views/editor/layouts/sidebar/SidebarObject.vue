@@ -1,8 +1,7 @@
 <script lang="ts" setup>
 import { ref, reactive, onMounted,onBeforeUnmount } from "vue";
 import * as THREE from "three";
-import { App,Hooks,Utils,SetUuidCommand,SetValueCommand,SetPositionCommand,SetRotationCommand,SetScaleCommand,SetColorCommand } from "@astral3d/engine";
-import { ReloadCircleOutline } from "@vicons/ionicons5";
+import { App,Hooks,Utils,SetValueCommand,SetPositionCommand,SetRotationCommand,SetScaleCommand,SetColorCommand } from "@astral3d/engine";
 import EsInputNumber from '@/components/es/EsInputNumber.vue';
 import { t } from "@/language";
 import UserData from "@/components/code/UserData.vue";
@@ -214,11 +213,6 @@ const update = (method: string) => {
     if (object === null) return;
 
     const call = {
-        uuid: () => {
-            const newUUID = THREE.MathUtils.generateUUID();
-            objectData.uuid = newUUID;
-            App.execute(new SetUuidCommand(object, newUUID));
-        },
         name: () => {
             App.execute(new SetValueCommand(object, 'name', objectData.name));
             Hooks.useDispatchSignal("sceneTreeChange");
@@ -413,13 +407,6 @@ const handleUserDataClick = () => {
                     </template>
                     {{ objectData.uuid }}
                 </n-tooltip>
-                <n-button size="small" quaternary circle type="primary" v-if="objectData.uuid" @click="update('uuid')">
-                    <template #icon>
-                        <n-icon size="16">
-                            <ReloadCircleOutline />
-                        </n-icon>
-                    </template>
-                </n-button>
             </div>
         </div>
         <!-- name -->

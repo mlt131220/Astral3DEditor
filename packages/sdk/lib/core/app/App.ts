@@ -709,6 +709,59 @@ export class App {
     }
 
     /**
+     * 同步遍历源对象与递归克隆中的对应节点
+     * @param sourceObject 源对象
+     * @param clonedObject 克隆对象
+     * @param callback 节点处理回调
+     * @returns 无返回值
+     */
+    private traverseClonedObjectPair(sourceObject: THREE.Object3D, clonedObject: THREE.Object3D, callback: (source: THREE.Object3D, cloned: THREE.Object3D) => void): void {
+        callback(sourceObject, clonedObject);
+
+        sourceObject.children.forEach((sourceChild, index) => {
+            this.traverseClonedObjectPair(sourceChild, clonedObject.children[index], callback);
+        });
+    }
+
+    /**
+     * 克隆对象，并为复制体创建独立动画剪辑
+     * 仅重映射以源对象 UUID 开头的编辑器轨道，名称轨道与骨骼轨道保持不变
+     * @param object 待克隆对象
+     * @returns 可安全加入场景的对象副本
+     */
+    cloneObject(object: THREE.Object3D): THREE.Object3D {
+        const clonedObject = object.clone();
+        const clonedUuidMap = new Map<string, string>();
+
+        this.traverseClonedObjectPair(object, clonedObject, (source, cloned) => {
+            clonedUuidMap.set(source.uuid, cloned.uuid);
+        });
+
+        this.traverseClonedObjectPair(object, clonedObject, (source, cloned) => {
+            const clonedAnimations: THREE.AnimationClip[] = [];
+
+            source.animations.forEach(animation => {
+                const sourceClip = animation instanceof THREE.AnimationAction ? animation.getClip() : animation;
+                if (!(sourceClip instanceof THREE.AnimationClip)) return;
+
+                const clonedClip = sourceClip.clone();
+                clonedClip.tracks.forEach(track => {
+                    const separatorIndex = track.name.indexOf('.');
+                    if (separatorIndex < 0) return;
+
+                    const clonedUuid = clonedUuidMap.get(track.name.slice(0, separatorIndex));
+                    if (clonedUuid) track.name = clonedUuid + track.name.slice(separatorIndex);
+                });
+                clonedAnimations.push(clonedClip);
+            });
+
+            cloned.animations = clonedAnimations;
+        });
+
+        return clonedObject;
+    }
+
+    /**
      * 获取不包含ignore属性模型的scene
      */
     getSceneWithoutIgnore() {
@@ -717,7 +770,9 @@ export class App {
         this.scene.children.forEach((item) => {
             if (!item.ignore) {
                 const model = item.clone();
-                model.uuid = item.uuid;
+                this.traverseClonedObjectPair(item, model, (source, cloned) => {
+                    cloned.uuid = source.uuid;
+                });
                 newScene.add(model);
             }
         })

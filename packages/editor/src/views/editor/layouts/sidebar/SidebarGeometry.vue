@@ -1,7 +1,5 @@
 <script lang="ts" setup>
 import {ref, reactive, onMounted,onBeforeUnmount, defineAsyncComponent} from "vue";
-import {ReloadCircleOutline} from "@vicons/ionicons5";
-import { MathUtils } from "three";
 import { VertexNormalsHelper } from 'three/examples/jsm/helpers/VertexNormalsHelper.js';
 import {App,Hooks,SetGeometryValueCommand} from '@astral3d/engine';
 import {t} from "@/language";
@@ -60,10 +58,6 @@ const update = (method: string) => {
   if (object === null) return;
 
   const call = {
-    uuid: () => {
-      geometryData.uuid = MathUtils.generateUUID();
-      App.execute(new SetGeometryValueCommand(object, 'uuid', geometryData.uuid));
-    },
     name: () => {
       App.execute(new SetGeometryValueCommand(object, 'name', geometryData.name));
     },
@@ -100,13 +94,6 @@ const update = (method: string) => {
           </template>
           {{ geometryData.uuid }}
         </n-tooltip>
-        <n-button size="small" quaternary circle type="primary" v-if="geometryData.uuid" @click="update('uuid')">
-          <template #icon>
-            <n-icon size="16">
-              <ReloadCircleOutline/>
-            </n-icon>
-          </template>
-        </n-button>
       </div>
     </div>
 

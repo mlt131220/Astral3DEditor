@@ -107,7 +107,7 @@
 </template>
 
 <script setup lang="ts">
-import {ref, onMounted, onBeforeMount} from 'vue';
+import {ref, onMounted, onBeforeUnmount} from 'vue';
 import {
   SkipBackFilled,
   PlayFilledAlt,
@@ -129,6 +129,19 @@ function objectSelected(object) {
   isSelectObject3D.value = !!object;
 }
 
+/**
+ * 在场景结构变更后同步当前对象的实时名称。
+ * @returns 无返回值。
+ */
+function sceneGraphChanged() {
+  const animationRoot = animationStore.current
+      ? App.animationManager.actionMap.get(animationStore.current.uuid)?.getRoot()
+      : undefined;
+  if (!animationRoot) return;
+
+  animationRoot.traverse(object => animationStore.updateObjectName(object));
+}
+
 // 动画轨道时间变化(游标拖动)
 function timelineTimeChanged(args: Timeline.TimelineTimeChangedEvent) {
   animationStore.currentTime = args.val;
@@ -143,11 +156,13 @@ function timelineRowChanged() {
 onMounted(() => {
   isSelectObject3D.value = !!App.selected;
   Hooks.useAddSignal("objectSelected", objectSelected);
+  Hooks.useAddSignal("sceneGraphChanged", sceneGraphChanged);
   Hooks.useAddSignal("timelineTimeChanged", timelineTimeChanged);
   Hooks.useAddSignal("timelineRowChanged", timelineRowChanged);
 })
-onBeforeMount(() => {
+onBeforeUnmount(() => {
   Hooks.useRemoveSignal("objectSelected", objectSelected);
+  Hooks.useRemoveSignal("sceneGraphChanged", sceneGraphChanged);
   Hooks.useRemoveSignal("timelineTimeChanged", timelineTimeChanged);
   Hooks.useRemoveSignal("timelineRowChanged", timelineRowChanged);
 })

@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import {ref, reactive, onMounted, onBeforeUnmount} from "vue";
-import {ReloadCircleOutline} from "@vicons/ionicons5";
 import * as THREE from 'three';
 import {App,Hooks,SetMaterialValueCommand,SetMaterialCommand,Utils} from "@astral3d/engine";
 import {t} from "@/language";
@@ -117,10 +116,6 @@ const update = () => {
   let material = App.getObjectMaterial(currentObject, currentMaterialSlot);
 
   if (material) {
-    if (material.uuid !== undefined && material.uuid !== objectData.uuid) {
-      App.execute(new SetMaterialValueCommand(currentObject, 'uuid', objectData.uuid, currentMaterialSlot));
-    }
-
     if (material.type !== objectData.type) {
       material = new materialClasses[objectData.type]();
 
@@ -216,12 +211,6 @@ function setRowVisibility() {
   }
 }
 
-//更新uuid
-function newUUID() {
-  objectData.uuid = THREE.MathUtils.generateUUID();
-  update();
-}
-
 //更新name
 function updateName() {
   App.execute(new SetMaterialValueCommand(App.selected, 'name', objectData.name, currentMaterialSlot));
@@ -262,13 +251,6 @@ const handleUserDataClick = () => {
           </template>
           {{ objectData.uuid }}
         </n-tooltip>
-        <n-button size="small" quaternary circle type="primary" v-if="objectData.uuid" @click="newUUID">
-          <template #icon>
-            <n-icon size="16">
-              <ReloadCircleOutline />
-            </n-icon>
-          </template>
-        </n-button>
       </div>
     </div>
     <!-- name -->

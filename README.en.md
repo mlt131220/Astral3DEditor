@@ -109,4 +109,4 @@ This project adopts the [![Apache License] (https://img.shields.io/badge/License
 
 ## 🌟 Star trend
 
-[![Star History Chart](https://api.star-history.com/svg?repos=mlt131220/Astral3D&type=Date)](https://star-history.com/#mlt131220/Astral3D&Date)
+[![Star History Chart](https://star-history.dera.page/svg?repos=mlt131220/Astral3D&type=Date)](https://star-history.dera.page/#mlt131220/Astral3D&type=date)
